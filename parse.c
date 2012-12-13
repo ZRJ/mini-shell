@@ -37,6 +37,30 @@ int read_command(void) {
  * return -1 on failed
  */
 int parse_command(void) {
+    char *cp = cmdline;
+    char *avp = avline;
+    int i = 0;
+    while (*cp != '\0') {
+        while (*cp==' ' || *cp=='\t') {
+            // left trim
+            cp++;
+        }
+        if (*cp=='\0' || *cp=='\n') {
+            break;
+        }
+        cmd.args[i] = avp;
+
+        // parse args
+        while (*cp != '\0'
+            && *cp != ' '
+            && *cp != '\t'
+            && *cp != '\n') {
+            *avp++ = *cp++;
+        }
+        *avp++ = '\0';
+        printf("[%s]\n", cmd.args[i]);
+        i++;
+    }
     return 0;
 }
 

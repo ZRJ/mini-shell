@@ -1,12 +1,22 @@
+#include <stdio.h>
 #include "parse.h"
+#include "externs.h"
+#include "init.h"
 
 /**
  * shell main loop
  */
 void shell_loop(void) {
-    read_command();
-    parse_command();
-    execute_command();
+    while (1) {
+        printf("[minishell]$ ");
+        fflush(stdout);
+        init();
+        if (read_command() == -1) {
+            break;
+        }
+        parse_command();
+        execute_command();
+    }
 }
 
 /**
@@ -15,6 +25,9 @@ void shell_loop(void) {
  * reach the end of file
  */
 int read_command(void) {
+    if (fgets(cmdline, MAXLINE, stdin) == NULL) {
+        return -1;
+    }
     return 0;
 }
 

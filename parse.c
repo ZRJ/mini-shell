@@ -114,14 +114,58 @@ int execute_command(void) {
         ERR_EXIT("fork");
     }
     if (pid == 0) {
-        execvp(cmd.args[0], cmd.args);
+        // execvp(cmd.args[0], cmd.args);
     }
     wait(NULL);
     return 0;
 }
 
+/*
+ * parse simple command into cmd[i],
+ * put command param of cmdline into avline array,
+ * and let the pointers in command.args[] 
+ * point to params string
+ */
 void get_command(int i) {
-
+    int j = 0;
+    int inword;
+    while (*lineptr != '\0') {
+        // trim left space
+        while (*lineptr == ' ' || *lineptr == '\t') {
+            lineptr++;
+        }
+        cmd[i].args[j] = avptr;
+        while (*lineptr != '\0' 
+            && *lineptr != ' '
+            && *lineptr != '\t'
+            && *lineptr != '>'
+            && *lineptr != '<'
+            && *lineptr != '|'
+            && *lineptr != '&'
+            && *lineptr != '\n') {
+            *avptr++ = *lineptr++;
+            inword = 1;
+        }
+        *avptr++ = '\0';
+        switch (*lineptr) {
+            case ' ':
+            case '\t':
+                inword = 0;
+                j++;
+                break;
+            case '<':
+            case '>':
+            case '|':
+            case '&':
+            case '\n':
+                if (inword == 0) {
+                    cmd[i].args[j] = NULL;
+                }
+                return;
+            default: /* for '\0' */
+                return;
+        }
+    }
 }
 
 int check(const char *str) {
@@ -129,5 +173,5 @@ int check(const char *str) {
 }
 
 void getname(char *name) {
-    
+
 }

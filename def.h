@@ -18,6 +18,8 @@
 typedef struct command {
     // the command args after parse
     char *args[MAXARG+1];
+    int infd;
+    int outfd;
 } COMMAND;
 
 #endif /* _DEF_H_ */

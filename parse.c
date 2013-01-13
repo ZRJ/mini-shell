@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "parse.h"
 #include "externs.h"
 #include "init.h"
@@ -69,5 +72,13 @@ int parse_command(void) {
  * return 0 on success or -1 on failed
  */
 int execute_command(void) {
+    pid_t pid = fork();
+    if (pid == -1) {
+        ERR_EXIT("fork");
+    }
+    if (pid == 0) {
+        execvp(cmd.args[0], cmd.args);
+    }
+    wait(NULL);
     return 0;
 }

@@ -4,7 +4,13 @@
 
 char cmdline[MAXLINE+1];
 char avline[MAXLINE+1];
+
+char infile[MAXLINE+1];
+char outfile[MAXLINE+1];
 COMMAND cmd;
+
+int cmd_count;
+int backgnd;
 
 int main() {
     setup();

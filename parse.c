@@ -6,6 +6,10 @@
 #include "externs.h"
 #include "init.h"
 
+void get_command(int i);
+int check(const char *str);
+void getname(char *name);
+
 /**
  * shell main loop
  */
@@ -40,7 +44,7 @@ int read_command(void) {
  * return -1 on failed
  */
 int parse_command(void) {
-    char *cp = cmdline;
+    /*char *cp = cmdline;
     char *avp = avline;
     int i = 0;
     while (*cp != '\0') {
@@ -63,8 +67,41 @@ int parse_command(void) {
         *avp++ = '\0';
         printf("[%s]\n", cmd.args[i]);
         i++;
+    }    
+    return 0;*/
+    /* a example command: cat < test.txt 
+        | grep -n public > test2.txt & */
+    // 1. parse a simple command
+    get_command(0);
+    // 2. judge the input redirect
+    if (check("<")) {
+        getname(infile);
     }
-    return 0;
+    // 3. judge the pipe
+    int i;
+    for (i=1; i<PIPELINE; i++) {
+        if (check("|")) {
+            get_command(i);
+        } else {
+            break;
+        }
+    }
+    // 4. judghe the output redirect
+    if (check(">")) {
+        getname(outfile);
+    }
+    // 5. judge the background job
+    if (check("&")) {
+        backgnd = 1;
+    }
+    // 6. judge the end of a command
+    if (check("\n")) {
+        cmd_count = i;
+        return cmd_count;
+    } else {
+        fprintf(stderr, "command line syntax err");
+        return -1;
+    }
 }
 
 /**
@@ -81,4 +118,16 @@ int execute_command(void) {
     }
     wait(NULL);
     return 0;
+}
+
+void get_command(int i) {
+
+}
+
+int check(const char *str) {
+    return 0;
+}
+
+void getname(char *name) {
+    
 }

@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include "parse.h"
 #include "externs.h"
 #include "init.h"
@@ -126,6 +127,26 @@ int execute_command(void) {
         // execvp(cmd.args[0], cmd.args);
     }
     wait(NULL);*/
+
+    // if has infile outfile
+    if (infile[0] != '\0') {
+        cmd[0].infd = open(infile, O_RDONLY);
+    }
+    if (outfile[0] != '\0') {
+        if (append) {
+            cmd[cmd_count-1].outfd = open(outfile, O_WRONLY
+                | O_CREAT | O_APPEND, 0666);
+        } else {
+            cmd[cmd_count-1].outfd = open(outfile, O_WRONLY
+                | O_CREAT | O_TRUNC, 0666);
+        }
+    }
+    // since background job will not be waited
+    // so need to ingnore the signal
+    if (backgnd == 1) {
+        signal(SIGCHLD, SIG_IGN);
+    }
+
     int i;
     int fd;
     int fds[2];
@@ -144,9 +165,13 @@ int execute_command(void) {
             close(fd);
         }
     }
-    while (wait(NULL) != lastpid) {
 
+    if (backgnd == 0) {
+        while (wait(NULL) != lastpid) {
+
+        }
     }
+    
     return 0;
 }
 
@@ -284,6 +309,11 @@ void forkexec(COMMAND *pcmd) {
         for (i = 3; i < 1024; i++) {
             // OPEN_MAX removed
             close(i);
+        }
+        // frontground job can catch signal
+        if (backgnd == 0) {
+            signal(SIGINT, SIG_DFL);
+            signal(SIGQUIT, SIG_DFL);
         }
         exit(EXIT_FAILURE);
     }

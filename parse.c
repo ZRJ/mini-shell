@@ -129,9 +129,9 @@ int execute_command(void) {
     int i;
     int fd;
     int fds[2];
-    for (i=0; i<cmd_count; i++) {
+    for (i=0; i<cmd_count; ++i) {
         // if not the last command, create a pipe
-        if (i < cmd_count) {
+        if (i < cmd_count-1) {
             pipe(fds);
             cmd[i].outfd = fds[1];
             cmd[i+1].infd = fds[0];
@@ -265,22 +265,22 @@ void forkexec(COMMAND *pcmd) {
     }
     if (pid > 0) {
         // parent
-    } else if (pid == 0) {
+    } else if (pid == 0) {      
         // forked
         if (pcmd->infd != 0) {
             close(0);
             dup(pcmd->infd);
-        }
+        }  
         if (pcmd->outfd != 1) {
             close(1);
             dup(pcmd->outfd);
         }
+        execvp(pcmd->args[0], pcmd->args);
         int i;
-        for (i = 0; i < 1024; i++) {
+        for (i = 3; i < 1024; i++) {
             // OPEN_MAX removed
             close(i);
         }
-        execvp(pcmd->args[0], pcmd->args);
         exit(EXIT_FAILURE);
     }
 }

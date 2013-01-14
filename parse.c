@@ -11,7 +11,7 @@ void get_command(int i);
 int check(const char *str);
 void getname(char *name);
 void print_command();
-void forkexec(COMMAND *pcmd);
+void forkexec(int i);
 
 /**
  * shell main loop
@@ -157,7 +157,7 @@ int execute_command(void) {
             cmd[i].outfd = fds[1];
             cmd[i+1].infd = fds[0];
         }
-        forkexec(&cmd[i]);
+        forkexec(i);
         if ((fd=cmd[i].infd) != 0) {
             close(fd);
         }
@@ -285,7 +285,7 @@ void getname(char *name) {
     *name = '\0';
 }
 
-void forkexec(COMMAND *pcmd) {
+void forkexec(int i) {
     pid_t pid;
     pid = fork();
     if (pid == -1) {
@@ -294,17 +294,26 @@ void forkexec(COMMAND *pcmd) {
     if (pid > 0) {
         lastpid = pid;
         // parent
-    } else if (pid == 0) {      
-        // forked
-        if (pcmd->infd != 0) {
-            close(0);
-            dup(pcmd->infd);
-        }  
-        if (pcmd->outfd != 1) {
-            close(1);
-            dup(pcmd->outfd);
+    } else if (pid == 0) {
+        // redirect the first command's infd to /dev/null
+        // when background = 1
+        if (cmd[i].infd == 0 && backgnd == 1) {
+            cmd[i].infd = open("/dev/null", O_RDONLY);
         }
-        execvp(pcmd->args[0], pcmd->args);
+        // make the first command as the process group  
+        if (i == 0) {
+            setpgid(0, 0);
+        }    
+        // forked
+        if (cmd[i].infd != 0) {
+            close(0);
+            dup(cmd[i].infd);
+        }  
+        if (cmd[i].outfd != 1) {
+            close(1);
+            dup(cmd[i].outfd);
+        }
+        execvp(cmd[i].args[0], cmd[i].args);
         int i;
         for (i = 3; i < 1024; i++) {
             // OPEN_MAX removed

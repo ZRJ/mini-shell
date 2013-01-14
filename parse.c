@@ -163,7 +163,7 @@ void get_command(int i) {
     while (*lineptr != '\0') {
         // trim left space
         while (*lineptr == ' ' || *lineptr == '\t') {
-            *lineptr++;
+            lineptr++;
         }
         // pointer the i-th command j-th param to avptr
         cmd[i].args[j] = avptr;

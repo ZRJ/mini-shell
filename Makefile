@@ -1,8 +1,8 @@
 .PHONY:clean
 CC=gcc
-CFLAGS=-Wall -g
+CFLAGS=-Wall -g -std=c99
 BIN=minishell
-OBJS=main.o parse.o init.o execute.o buildin.o
+OBJS=main.o parse.o init.o execute.o buildin.o str.o
 $(BIN):$(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 %.o:%.c

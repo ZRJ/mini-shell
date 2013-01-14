@@ -10,6 +10,7 @@ void get_command(int i);
 int check(const char *str);
 void getname(char *name);
 void print_command();
+void forkexec(COMMAND *pcmd);
 
 /**
  * shell main loop
@@ -73,6 +74,9 @@ int parse_command(void) {
     return 0;*/
     /* a example command: cat < test.txt 
         | grep -n public > test2.txt & */
+    if (check("\n")) {
+        return 0;
+    }
     // 1. parse a simple command
     get_command(0);
     // 2. judge the input redirect
@@ -114,14 +118,32 @@ int parse_command(void) {
  * return 0 on success or -1 on failed
  */
 int execute_command(void) {
-    pid_t pid = fork();
+    /*pid_t pid = fork();
     if (pid == -1) {
         ERR_EXIT("fork");
     }
     if (pid == 0) {
         // execvp(cmd.args[0], cmd.args);
     }
-    wait(NULL);
+    wait(NULL);*/
+    int i;
+    int fd;
+    int fds[2];
+    for (i=0; i<cmd_count; i++) {
+        // if not the last command, create a pipe
+        if (i < cmd_count) {
+            pipe(fds);
+            cmd[i].outfd = fds[1];
+            cmd[i+1].infd = fds[0];
+        }
+        forkexec(&cmd[i]);
+        if ((fd=cmd[i].infd) != 0) {
+            close(fd);
+        }
+        if ((fd=cmd[i].outfd) != 1) {
+            close(fd);
+        }
+    }
     return 0;
 }
 
@@ -233,4 +255,32 @@ void getname(char *name) {
         *name++ = *lineptr++;
     }
     *name = '\0';
+}
+
+void forkexec(COMMAND *pcmd) {
+    pid_t pid;
+    pid = fork();
+    if (pid == -1) {
+        ERR_EXIT("fork");
+    }
+    if (pid > 0) {
+        // parent
+    } else if (pid == 0) {
+        // forked
+        if (pcmd->infd != 0) {
+            close(0);
+            dup(pcmd->infd);
+        }
+        if (pcmd->outfd != 1) {
+            close(1);
+            dup(pcmd->outfd);
+        }
+        int i;
+        for (i = 0; i < 1024; i++) {
+            // OPEN_MAX removed
+            close(i);
+        }
+        execvp(pcmd->args[0], pcmd->args);
+        exit(EXIT_FAILURE);
+    }
 }

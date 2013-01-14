@@ -88,6 +88,9 @@ int parse_command(void) {
     }
     // 4. judghe the output redirect
     if (check(">")) {
+        if (check(">")) {
+            append = 1;
+        }
         getname(outfile);
     }
     // 5. judge the background job
@@ -132,9 +135,11 @@ void get_command(int i) {
     while (*lineptr != '\0') {
         // trim left space
         while (*lineptr == ' ' || *lineptr == '\t') {
-            lineptr++;
+            *lineptr++;
         }
+        // pointer the i-th command j-th param to avptr
         cmd[i].args[j] = avptr;
+        // get params
         while (*lineptr != '\0' 
             && *lineptr != ' '
             && *lineptr != '\t'
@@ -143,6 +148,7 @@ void get_command(int i) {
             && *lineptr != '|'
             && *lineptr != '&'
             && *lineptr != '\n') {
+            // get params to avlilne
             *avptr++ = *lineptr++;
             inword = 1;
         }
@@ -168,10 +174,45 @@ void get_command(int i) {
     }
 }
 
+/*
+ * compare the string in lineptr with str
+ * return 1 on success or 0 on failed
+ */
 int check(const char *str) {
+    char *p;
+    // trim space
+    while (*lineptr == ' '
+        || *lineptr == '\t') {
+        lineptr++;
+    }
+    p = lineptr;
+    while (*str != '\0' && *str == *p) {
+        str++;
+        p++;
+    }
+    if (*str == '\0') {
+        // lineptr should move over the matched string
+        lineptr = p;
+        return 1;
+    }
+    // lineptr remain unchanged
     return 0;
 }
 
 void getname(char *name) {
-
+    // trim left space
+    while (*lineptr == ' ' || *lineptr == '\t') {
+        lineptr++;
+    }
+    while (*lineptr != '\0' 
+            && *lineptr != ' '
+            && *lineptr != '\t'
+            && *lineptr != '>'
+            && *lineptr != '<'
+            && *lineptr != '|'
+            && *lineptr != '&'
+            && *lineptr != '\n') {
+        *name++ = *lineptr++;
+    }
+    *name = '\0';
 }

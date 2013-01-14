@@ -17,7 +17,9 @@ int append;
 int lastpid;
 
 int main() {
+    // setup signal
     setup();
+    // start main loop
     shell_loop();
     return 0;
 }

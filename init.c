@@ -34,4 +34,5 @@ void init(void) {
     cmd_count = 0;
     backgnd = 0;
     append = 0;
+    lastpid = 0;
 }

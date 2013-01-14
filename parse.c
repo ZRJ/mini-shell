@@ -144,6 +144,9 @@ int execute_command(void) {
             close(fd);
         }
     }
+    while (wait(NULL) != lastpid) {
+
+    }
     return 0;
 }
 
@@ -264,6 +267,7 @@ void forkexec(COMMAND *pcmd) {
         ERR_EXIT("fork");
     }
     if (pid > 0) {
+        lastpid = pid;
         // parent
     } else if (pid == 0) {      
         // forked

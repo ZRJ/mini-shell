@@ -9,6 +9,7 @@
 void get_command(int i);
 int check(const char *str);
 void getname(char *name);
+void print_command();
 
 /**
  * shell main loop
@@ -22,6 +23,7 @@ void shell_loop(void) {
             break;
         }
         parse_command();
+        print_command();
         execute_command();
     }
 }
@@ -123,6 +125,22 @@ int execute_command(void) {
     return 0;
 }
 
+void print_command() {
+    int i;
+    int j;
+    printf("cmd_count = %d\n", cmd_count);
+    printf("infile=[%s]\n", infile);
+    printf("outfile=[%s]\n", outfile);
+    for (i=0; i<cmd_count; ++i) {
+        j = 0;
+        while (cmd[i].args[j] != NULL) {
+            printf("[%s] ", cmd[i].args[j]);
+            j++;
+        }
+        printf("\n");
+    }
+}
+
 /*
  * parse simple command into cmd[i],
  * put command param of cmdline into avline array,
@@ -174,7 +192,7 @@ void get_command(int i) {
     }
 }
 
-/*
+/**
  * compare the string in lineptr with str
  * return 1 on success or 0 on failed
  */

@@ -128,6 +128,9 @@ int execute_command(void) {
     }
     wait(NULL);*/
 
+    if (cmd_count == 0) {
+        return 0;
+    }
     // if has infile outfile
     if (infile[0] != '\0') {
         cmd[0].infd = open(infile, O_RDONLY);

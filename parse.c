@@ -7,9 +7,9 @@
 #include "externs.h"
 #include "init.h"
 #include "execute.h"
+#include "buildin.h"
 
 void get_command(int i);
-int check(const char *str);
 void getname(char *name);
 void print_command();
 
@@ -77,6 +77,11 @@ int parse_command(void) {
     if (check("\n")) {
         return 0;
     }
+
+    if (buildin()) {
+        return 0;
+    }
+
     // 1. parse a simple command
     get_command(0);
     // 2. judge the input redirect

@@ -18,15 +18,18 @@
 #include "def.h"
 #include "str.h"
 
+void setup();
+void sigint_handler(int sig);
 void init_cmd(COMBINE_COMMAND *cmd);
 void clean_up_cmd(COMBINE_COMMAND *cmd);
 int read_cmd(COMBINE_COMMAND *cmd);
 void print_cmd(COMBINE_COMMAND *cmd);
 void parse_cmd(COMBINE_COMMAND *cmd);
 int execute_cmd(COMBINE_COMMAND *cmd);
-int fork_exec(SINGLE_COMMAND *cmd);
+int fork_exec(SINGLE_COMMAND *cmd, int index);
 
 int shell_loop() {
+    setup();
     COMBINE_COMMAND cmd;
     while (1) {
         init_cmd(&cmd);
@@ -42,6 +45,16 @@ int shell_loop() {
         clean_up_cmd(&cmd);
     } 
     return 0;
+}
+
+void setup() {
+    signal(SIGINT, sigint_handler);
+    signal(SIGQUIT, SIG_IGN);
+}
+
+void sigint_handler(int sig) {
+    printf("\n[minishell]$ \n");
+    fflush(stdout);
 }
 
 void init_cmd(COMBINE_COMMAND *cmd) {
@@ -196,7 +209,7 @@ int execute_cmd(COMBINE_COMMAND *cmd) {
             cmd->single_command[i].outfd = fds[1];
             // pipe close in clean up function
         }
-        last_pid = fork_exec(&cmd->single_command[i]);
+        last_pid = fork_exec(&cmd->single_command[i], i);
         // printf("last_pid is %d\n", last_pid);        
         if (cmd->single_command[i].infd != STDIN_FILENO) {
             close(cmd->single_command[i].infd);
@@ -219,12 +232,16 @@ int execute_cmd(COMBINE_COMMAND *cmd) {
     return 0;
 }
 
-int fork_exec(SINGLE_COMMAND *cmd) {
+int fork_exec(SINGLE_COMMAND *cmd, int index) {
     pid_t pid = fork();
     if (pid > 0) {
         // parent
         return pid;
     } else if (pid == 0) {
+        // make the first command as the process group
+        if (index == 0) {
+            setpgid(0, 0);
+        }
         if (cmd->infd != STDIN_FILENO) {
             close(STDIN_FILENO);
             // printf("duplicating infd %d\n", cmd->infd);

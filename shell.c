@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <signal.h>
 
 // for open
 #include <sys/types.h>
@@ -37,13 +38,14 @@ int shell_loop() {
             break;
         }
         if (strlen(cmd.cmd_line) == 0) {
+            clean_up_cmd(&cmd);
             continue;
         }
         parse_cmd(&cmd);
         // print_cmd(&cmd);
         execute_cmd(&cmd);
         clean_up_cmd(&cmd);
-    } 
+    }
     return 0;
 }
 
@@ -53,7 +55,7 @@ void setup() {
 }
 
 void sigint_handler(int sig) {
-    printf("\n[minishell]$ \n");
+    printf("\n[minishell]$ ");
     fflush(stdout);
 }
 

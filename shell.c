@@ -42,7 +42,7 @@ int shell_loop() {
             continue;
         }
         parse_cmd(&cmd);
-        print_cmd(&cmd);
+        // print_cmd(&cmd);
         execute_cmd(&cmd);
         clean_up_cmd(&cmd);
     }
@@ -223,11 +223,13 @@ int execute_cmd(COMBINE_COMMAND *cmd) {
         }
     }
     
-    while (1) {
-        int pid = wait(NULL);
-        // printf("child %d ended\n", pid);
-        if (pid == last_pid) {
-            break;
+    if (cmd->is_bg_command == 0) {
+        while (1) {
+            int pid = wait(NULL);
+            // printf("child %d ended\n", pid);
+            if (pid == last_pid) {
+                break;
+            }
         }
     }
 
@@ -256,15 +258,7 @@ int fork_exec(COMBINE_COMMAND *combine_cmd, int index) {
             // printf("duplicating outfd %d\n", cmd->outfd);
             dup(cmd->outfd);
         }  
-        ecvp(cmd->args[0], cmd->args);
-
-        // frontground job can catch signal
-        if (combine_cmd->is_bg_command == 0) {
-            printf("reseting signal\n");
-            signal(SIGINT, SIG_DFL);
-            signal(SIGQUIT, SIG_DFL);
-        } 
-        
+        execvp(cmd->args[0], cmd->args);
         return 0;
     } else {
         return -1;

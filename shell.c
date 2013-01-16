@@ -114,25 +114,6 @@ void parse_cmd(COMBINE_COMMAND *cmd) {
     cmd->single_command_count = explode(cmd->cmd_line, '|',
         cmd->single_command_str, PIPE_LINE+1);
     
-    // judge infile
-    if (strstr(cmd->single_command_str[0], "<")) {
-        char *tmp[2];
-        for (int i=0; i<2; i++) {
-            tmp[i] = malloc(MAX_ARG_NUM*MAX_ARG_LEN*sizeof(char));
-            memset(tmp[i], 0, MAX_ARG_NUM*MAX_ARG_LEN*sizeof(char));
-        }
-        explode(cmd->single_command_str[0], '<', tmp, 2);
-        for (int i=0; i<2; i++) {
-            trim(tmp[i]);
-        }
-        strcpy(cmd->single_command_str[0], tmp[0]);        
-        strcpy(cmd->infile, tmp[1]);
-        for (int i=0; i<2; i++) {
-            free(tmp[i]);
-            tmp[i] = NULL;
-        }
-    }
-
     // judge outfile
     char *cmd_outfile_append_ptr = 
         strstr(cmd->single_command_str[cmd->single_command_count-1], ">>");
@@ -161,6 +142,25 @@ void parse_cmd(COMBINE_COMMAND *cmd) {
         }
     }
     
+    // judge infile
+    if (strstr(cmd->single_command_str[0], "<")) {
+        char *tmp[2];
+        for (int i=0; i<2; i++) {
+            tmp[i] = malloc(MAX_ARG_NUM*MAX_ARG_LEN*sizeof(char));
+            memset(tmp[i], 0, MAX_ARG_NUM*MAX_ARG_LEN*sizeof(char));
+        }
+        explode(cmd->single_command_str[0], '<', tmp, 2);
+        for (int i=0; i<2; i++) {
+            trim(tmp[i]);
+        }
+        strcpy(cmd->single_command_str[0], tmp[0]);        
+        strcpy(cmd->infile, tmp[1]);
+        for (int i=0; i<2; i++) {
+            free(tmp[i]);
+            tmp[i] = NULL;
+        }
+    }
+
     // explode args
     for (int i=0; i<cmd->single_command_count; i++) {
         trim(cmd->single_command_str[i]);

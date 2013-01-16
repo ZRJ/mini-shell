@@ -27,7 +27,7 @@ int read_cmd(COMBINE_COMMAND *cmd);
 void print_cmd(COMBINE_COMMAND *cmd);
 void parse_cmd(COMBINE_COMMAND *cmd);
 int execute_cmd(COMBINE_COMMAND *cmd);
-int fork_exec(SINGLE_COMMAND *cmd, int index);
+int fork_exec(COMBINE_COMMAND *combine_cmd, int index);
 
 int shell_loop() {
     setup();
@@ -42,7 +42,7 @@ int shell_loop() {
             continue;
         }
         parse_cmd(&cmd);
-        // print_cmd(&cmd);
+        print_cmd(&cmd);
         execute_cmd(&cmd);
         clean_up_cmd(&cmd);
     }
@@ -211,7 +211,7 @@ int execute_cmd(COMBINE_COMMAND *cmd) {
             cmd->single_command[i].outfd = fds[1];
             // pipe close in clean up function
         }
-        last_pid = fork_exec(&cmd->single_command[i], i);
+        last_pid = fork_exec(cmd, i);
         // printf("last_pid is %d\n", last_pid);        
         if (cmd->single_command[i].infd != STDIN_FILENO) {
             close(cmd->single_command[i].infd);
@@ -234,7 +234,8 @@ int execute_cmd(COMBINE_COMMAND *cmd) {
     return 0;
 }
 
-int fork_exec(SINGLE_COMMAND *cmd, int index) {
+int fork_exec(COMBINE_COMMAND *combine_cmd, int index) {
+    SINGLE_COMMAND *cmd = &combine_cmd->single_command[index];
     pid_t pid = fork();
     if (pid > 0) {
         // parent
@@ -244,6 +245,7 @@ int fork_exec(SINGLE_COMMAND *cmd, int index) {
         if (index == 0) {
             setpgid(0, 0);
         }
+
         if (cmd->infd != STDIN_FILENO) {
             close(STDIN_FILENO);
             // printf("duplicating infd %d\n", cmd->infd);
@@ -253,8 +255,16 @@ int fork_exec(SINGLE_COMMAND *cmd, int index) {
             close(STDOUT_FILENO);
             // printf("duplicating outfd %d\n", cmd->outfd);
             dup(cmd->outfd);
-        }
-        execvp(cmd->args[0], cmd->args);
+        }  
+        ecvp(cmd->args[0], cmd->args);
+
+        // frontground job can catch signal
+        if (combine_cmd->is_bg_command == 0) {
+            printf("reseting signal\n");
+            signal(SIGINT, SIG_DFL);
+            signal(SIGQUIT, SIG_DFL);
+        } 
+        
         return 0;
     } else {
         return -1;
